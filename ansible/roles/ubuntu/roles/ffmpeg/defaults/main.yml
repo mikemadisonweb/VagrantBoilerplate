@@ -1,0 +1,20 @@
+---
+FFMPEG_ROOT_DIR: "/home/{{ ansible_ssh_user }}"
+
+FFMPEG_BUILD_DIR: "{{ FFMPEG_ROOT_DIR }}/FFMPEG_BUILD_DIR"
+FFMPEG_SOURCE_DIR: "{{ FFMPEG_ROOT_DIR }}/ffmpeg_sources"
+FFMPEG_BIN_DIR: "{{ FFMPEG_ROOT_DIR }}/bin"
+FFMPEG_ENV:
+  PKG_CONFIG_PATH: "{{ FFMPEG_BUILD_DIR }}/lib/pkgconfig"
+  PATH: "{{ FFMPEG_BIN_DIR }}:{{ ansible_env.PATH }}"
+
+FFMPEG_DEPS:
+  - cmake
+  - libass-dev
+  - libfreetype6-dev
+  - libtheora-dev
+  - libtool
+  - libvorbis-dev
+  - pkg-config 
+  - texi2html
+  - zlib1g-dev

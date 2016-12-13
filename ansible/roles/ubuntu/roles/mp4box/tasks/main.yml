@@ -1,0 +1,17 @@
+---
+- name: Check if mp4box is already installed
+  command: dpkg-query -W {{ MP4BOX_LIB_NAME }}
+  register: mp4box_check_deb
+  failed_when: mp4box_check_deb.rc > 1
+  changed_when: mp4box_check_deb.rc == 1
+
+- name: Download mp4box
+  get_url:
+    url="{{ MP4BOX_URL }}"
+    dest="/home/vagrant/{{ MP4BOX_PACKAGE_NAME }}"
+  when: mp4box_check_deb.rc == 1
+
+- name: Install mp4box
+  apt: deb="/home/vagrant/{{ MP4BOX_PACKAGE_NAME }}"
+  become: true
+  when: mp4box_check_deb.rc == 1

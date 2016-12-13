@@ -1,0 +1,192 @@
+# Official ffmpeg compilation guide in Ansible style
+# https://trac.ffmpeg.org/wiki/CompilationGuide/Ubuntu
+---
+- name: Install common dependencies
+  apt: name={{ item }} state=present update_cache=true
+  with_items:
+    - autoconf
+    - automake
+    - build-essential
+    - pkg-config
+    - git-core
+
+- name: Install ffmpeg stuff
+  apt: name={{ item }} state=present
+  with_items: "{{ FFMPEG_DEPS }}"
+
+- name: Make directories
+  file: dest={{ item }} state=directory
+  with_items:
+    - "{{ FFMPEG_SOURCE_DIR }}"
+    - "{{ FFMPEG_BIN_DIR }}"
+    - "{{ FFMPEG_BUILD_DIR }}"
+
+
+# Clone git repositories
+
+- name: Clone latest yasm
+  git: >
+    repo=git://github.com/yasm/yasm.git
+    dest={{ FFMPEG_SOURCE_DIR }}/yasm
+    force=yes
+    accept_hostkey=true
+
+- name: Clone latest x264
+  git: >
+    repo=git://git.videolan.org/x264.git
+    dest={{ FFMPEG_SOURCE_DIR }}/x264
+    force=yes
+    accept_hostkey=true
+
+- name: Clone latest x265
+  git: >
+    repo=https://github.com/videolan/x265.git
+    dest={{ FFMPEG_SOURCE_DIR }}/x265
+    force=yes
+    accept_hostkey=true
+
+- name: Clone latest fdk-aac
+  git: >
+    repo=https://github.com/mstorsjo/fdk-aac.git
+    dest={{ FFMPEG_SOURCE_DIR }}/fdk-aac
+    force=yes
+    accept_hostkey=true
+
+- name: Clone latest libmp3lame
+  git: >
+    repo=https://github.com/gypified/libmp3lame.git
+    dest={{ FFMPEG_SOURCE_DIR }}/libmp3lame
+    force=yes
+    accept_hostkey=true
+
+- name: Download opus tarball
+  get_url:
+    url="http://downloads.xiph.org/releases/opus/opus-1.1.tar.gz"
+    dest={{ FFMPEG_SOURCE_DIR }}
+  register: opus_archive
+
+- name: Unarchive opus tarball
+  unarchive:
+    src="{{ FFMPEG_SOURCE_DIR }}/opus-1.1.tar.gz"
+    dest={{ FFMPEG_SOURCE_DIR }}
+    copy=no
+  when: opus_archive|changed
+
+- name: Clone latest libvpx
+  git: >
+    repo=https://chromium.googlesource.com/webm/libvpx.git
+    dest={{ FFMPEG_SOURCE_DIR }}/libvpx
+    force=yes
+    accept_hostkey=true
+
+- name: Clone latest ffmpeg
+  git: >
+    repo=git://github.com/FFmpeg/FFmpeg.git
+    dest={{ FFMPEG_SOURCE_DIR }}/ffmpeg
+    force=yes
+    accept_hostkey=true
+
+
+# Compile
+
+- name: Compile yasm
+  command: "{{ item }}"
+  args:
+    chdir: "{{ FFMPEG_SOURCE_DIR }}/yasm"
+    creates: "{{ FFMPEG_BIN_DIR }}/yasm"
+  with_items:
+    - ./autogen.sh
+    - "./configure --prefix={{ FFMPEG_BUILD_DIR }} --bindir={{ FFMPEG_BIN_DIR }}"
+    - make
+    - make install
+    - make distclean
+
+- name: Compile x264
+  environment: "{{ FFMPEG_ENV }}"
+  command: "{{ item }}"
+  args:
+    chdir: "{{ FFMPEG_SOURCE_DIR }}/x264"
+    creates: "{{ FFMPEG_BIN_DIR }}/x264"
+  with_items:
+    - ./configure --prefix={{ FFMPEG_BUILD_DIR }} --bindir={{ FFMPEG_BIN_DIR }} --enable-static
+    - make
+    - make install
+    - make distclean
+
+
+- name: Compile x265
+  environment: "{{ FFMPEG_ENV }}"
+  command: "{{ item }}"
+  args:
+    chdir: "{{ FFMPEG_SOURCE_DIR }}/x265/build/linux"
+    creates: "{{ FFMPEG_BIN_DIR }}/x265"
+  with_items:
+    - cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX={{ FFMPEG_BUILD_DIR }} -DENABLE_SHARED:bool=off ../../source
+    - make
+    - make install
+    - make clean
+
+- name: Compile fdk-aac
+  environment: "{{ FFMPEG_ENV }}"
+  command: "{{ item }}"
+  args:
+    chdir: "{{ FFMPEG_SOURCE_DIR }}/fdk-aac"
+    creates: "{{ FFMPEG_BUILD_DIR }}/lib/libfdk-aac.a"
+  with_items:
+    - autoreconf -fiv
+    - ./configure --prefix={{ FFMPEG_BUILD_DIR }} --disable-shared
+    - make
+    - make install
+    - make distclean
+
+- name: Compile libmp3lame
+  environment: "{{ FFMPEG_ENV }}"
+  command: "{{ item }}"
+  args:
+    chdir: "{{ FFMPEG_SOURCE_DIR }}/libmp3lame"
+    creates: "{{ FFMPEG_BUILD_DIR }}/libmp3lame"
+  with_items:
+    - ./configure --prefix={{ FFMPEG_BUILD_DIR }} --enable-nasm --disable-shared
+    - make
+    - make install
+    - make distclean
+
+- name: Compile libopus
+  environment: "{{ FFMPEG_ENV }}"
+  command: "{{ item }}"
+  args:
+    chdir: "{{ FFMPEG_SOURCE_DIR }}/opus-1.1"
+    creates: "{{ FFMPEG_BUILD_DIR }}/lib/libopus.a"
+  with_items:
+    - ./configure --prefix={{ FFMPEG_BUILD_DIR }} --disable-shared
+    - make
+    - make install
+    - make distclean
+
+- name: Compile libvpx
+  environment: "{{ FFMPEG_ENV }}"
+  command: "{{ item }}"
+  args:
+    chdir: "{{ FFMPEG_SOURCE_DIR }}/libvpx"
+    creates: "{{ FFMPEG_BUILD_DIR }}/libvpx"
+  with_items:
+    - ./configure --prefix={{ FFMPEG_BUILD_DIR }} --disable-examples --disable-unit-tests
+    - make
+    - make install
+    - make clean
+
+- name: Compile ffmpeg
+  environment: "{{ FFMPEG_ENV }}"
+  command: "{{ item }}"
+  args:
+    chdir: "{{ FFMPEG_SOURCE_DIR }}/ffmpeg"
+    creates: "{{ FFMPEG_BIN_DIR }}/ffmpeg"
+  with_items:
+    - ./configure --prefix={{ FFMPEG_BUILD_DIR }} --pkg-config-flags="--static" --extra-cflags=-I{{ FFMPEG_BUILD_DIR }}/include --extra-ldflags=-L{{ FFMPEG_BUILD_DIR }}/lib --bindir={{ FFMPEG_BIN_DIR }} --enable-gpl --enable-libass --enable-libfdk-aac --enable-libmp3lame --enable-libopus --enable-libtheora --enable-libvorbis --enable-libvpx --enable-libx264 --enable-libx265 --enable-nonfree
+    - make
+    - make install
+    - make distclean
+
+- name: Update manpath map
+  shell: 'echo "MANPATH_MAP {{ FFMPEG_BIN_DIR }} {{ FFMPEG_BUILD_DIR }}/share/man" >> /etc/manpath.config'
+  tags: manpath

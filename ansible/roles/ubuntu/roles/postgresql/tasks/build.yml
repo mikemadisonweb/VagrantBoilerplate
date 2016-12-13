@@ -1,0 +1,38 @@
+---
+- name: Check CA certificates
+  apt:
+    pkg: ca-certificates
+    state: present
+
+- name: Add PostgreSQL repository apt-key
+  apt_key:
+    id: "{{ PSQL_APT_KEY_ID }}"
+    url: "{{ PSQL_APT_KEY_URL }}"
+    state: present
+
+- name: Add PostgreSQL repository
+  apt_repository:
+    repo: "{{ PSQL_APT_REPOSITORY }}"
+    state: present
+  register: pg_repo
+
+- name: Updating apt cache
+  apt:
+    update_cache: yes
+  when: pg_repo.changed
+
+- name: Install dependencies
+  apt: pkg={{ item }} state=latest
+  with_items:
+    - python-psycopg2
+    - python-pycurl
+
+- name: Install PostgreSQL
+  apt:
+    name: "{{ item }}"
+    state: latest
+  environment: "{{ PSQL_ENV }}"
+  with_items:
+    - "postgresql-{{ PSQL_VERSION }}"
+    - "postgresql-client-{{ PSQL_VERSION }}"
+    - "postgresql-contrib-{{ PSQL_VERSION }}"

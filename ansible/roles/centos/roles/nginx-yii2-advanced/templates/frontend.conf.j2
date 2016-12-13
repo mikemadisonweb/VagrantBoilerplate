@@ -1,0 +1,36 @@
+server {
+    charset      utf-8;
+    listen       80; # listen for IPv4
+    #listen       [::]:80 ipv6only=on; # listen for IPv6
+    server_name  {{ nginx.frontend_host }};
+    root         {{ system.root }}{{ nginx.frontend_url }};
+
+    #add_header 'Access-Control-Allow-Origin' '*';
+    add_header 'Access-Control-Allow-Credentials' 'true';
+    add_header 'Access-Control-Allow-Headers' 'Content-Type,*';
+
+    access_log  /var/log/nginx/frontend_access.log main;
+    error_log   /var/log/nginx/frontend_error.log;
+
+    location / {
+        try_files $uri /{{ nginx.index }}?$args;
+    }
+
+    location ~* \.php$ {
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root/$fastcgi_script_name;
+        fastcgi_pass  {{ nginx.pass }};
+        try_files $uri =404;
+    }
+
+    # avoid processing of calls to non-existing static files by Yii (uncomment if necessary)
+    location ~* \.(css|js|jpg|jpeg|png|gif|bmp|ico|mov|swf|pdf|zip|rar|woff|woff2|ttf)$ {
+        access_log  off;
+        log_not_found  off;
+        try_files  $uri {{ nginx.frontend_url }}$uri =404;
+    }
+
+    location ~* \.(htaccess|htpasswd|svn|git) {
+        deny all;
+    }
+}

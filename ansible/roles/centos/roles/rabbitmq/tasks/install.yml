@@ -1,0 +1,26 @@
+---
+- name: Ensure Epel is installed
+  yum:
+    name: epel-release
+    state: present
+
+- name: Ensure Erlang repo is installed
+  yum:
+    name: "{{ ERLANG_RPM_URL }}"
+    state: present
+
+- name: Ensure Erlang is installed
+  yum:
+    name: erlang
+    state: present
+
+- name: Install python-requests
+  yum:
+    name: python-requests
+    state: present
+
+- name: Ensure RabbitMQ is installed
+  yum:
+    name: "{{ RABBITMQ_RPM_URL }}"
+    state: present
+

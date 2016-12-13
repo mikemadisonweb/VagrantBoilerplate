@@ -1,0 +1,61 @@
+---
+#- name: Load php pool configuration
+#  template:
+#    src: www.conf.j2
+#    dest: "{{ PHP_POOL_PATH }}/www.conf"
+#  notify: restart php5-fpm
+
+- name: Copy php configuration
+  template:
+    src: php.ini.j2
+    dest: "{{ PHP_CONFIG_PATH }}/php.ini"
+  notify: restart php5-fpm
+   
+- name: Config PHP | Set global configuration
+  lineinfile:
+    dest: "{{ PHP_CONFIG_PATH }}/php.ini"
+    regexp: "{{ item.key }}"
+    line: "{{ item.value }}"
+    backup: yes
+    create: no
+  with_items:
+    - {key: "^max_execution_time = ", value: "max_execution_time = {{ php.config.max_execution_time }}"}
+    - {key: "^memory_limit = ", value: "memory_limit = {{ php.config.memory_limit }}"}
+    - {key: "^upload_max_filesize = ", value: "upload_max_filesize = {{ php.config.upload_max_filesize }}"}
+    - {key: "^date.timezone = ", value: "date.timezone = {{ TIMEZONE }}"}
+  notify: restart php5-fpm
+
+- name: Config PHP | Set configuration for env prod
+  lineinfile:
+    dest: "{{ PHP_CONFIG_PATH }}/php.ini"
+    regexp: "{{ item.key }}"
+    line: "{{ item.value }}"
+    backup: yes
+    create: no
+  with_items:
+    - {key: "^expose_php = ", value: "expose_php = Off"}
+    - {key: "^error_reporting = ", value: "error_reporting = E_ALL & ~E_DEPRECATED & ~E_STRICT"}
+    - {key: "^display_errors = ", value: "display_errors = Off"}
+    - {key: "^display_startup_errors = ", value: "display_startup_errors = Off"}
+    - {key: "^ignore_repeated_errors = ", value: "ignore_repeated_errors = On"}
+    - {key: "^track_errors = ", value: "track_errors = Off"}
+  notify: restart php5-fpm
+  when: php.env == "prod"
+
+
+- name: Config PHP | Set configuration env dev
+  lineinfile:
+    dest: "{{ PHP_CONFIG_PATH }}/php.ini"
+    regexp: "{{ item.key }}"
+    line: "{{ item.value }}"
+    backup: yes
+    create: no
+  with_items:
+    - {key: "^expose_php = ", value: "expose_php = On"}
+    - {key: "^error_reporting = ", value: "error_reporting = E_ALL"}
+    - {key: "^display_errors = ", value: "display_errors = On"}
+    - {key: "^display_startup_errors = ", value: "display_startup_errors = On"}
+    - {key: "^ignore_repeated_errors = ", value: "ignore_repeated_errors = Off"}
+    - {key: "^track_errors = ", value: "track_errors = On"}
+  notify: restart php5-fpm
+  when: php.env == "dev"

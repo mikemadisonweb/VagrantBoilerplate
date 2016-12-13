@@ -1,0 +1,21 @@
+server {
+    server_name {{ nginx.host }};
+    root {{ system.root }}{{ nginx.base_url }};
+    index {{ nginx.index }};
+    client_max_body_size 20m;
+
+    location / {
+        try_files $uri $uri/ /{{ nginx.index }}?$args;
+    }
+
+    location ~ \.php$ {
+        fastcgi_pass   unix:/var/run/php/php7.0-fpm.sock;
+        fastcgi_split_path_info ^(.+\.php)(/.*)$;
+        fastcgi_index {{ nginx.index }};
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    }
+
+    error_log {{ system.root }}/project_error.log;
+    access_log {{ system.root }}/project_access.log;
+}

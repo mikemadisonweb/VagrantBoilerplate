@@ -1,0 +1,3 @@
+---
+ERLANG_RPM_URL: "http://packages.erlang-solutions.com/erlang-solutions-1.0-1.noarch.rpm"
+RABBITMQ_RPM_URL: "https://www.rabbitmq.com/releases/rabbitmq-server/v3.6.6/rabbitmq-server-3.6.6-1.el7.noarch.rpm"

@@ -1,0 +1,12 @@
+---
+COMPOSER_PATH: /usr/local/bin/composer
+COMPOSER_VERSION: ''
+
+# The directory where global packages will be installed.
+COMPOSER_HOME_PATH: '~/.composer'
+COMPOSER_HOME_OWNER: root
+COMPOSER_HOME_GROUP: root
+COMPOSER_ADD_TO_PATH: true
+
+# GitHub OAuth token (used to help overcome API rate limits).
+COMPOSER_GITHUB_OAUTH_TOKEN: '97c1555223830331782d59014212b54e6c0f0959'

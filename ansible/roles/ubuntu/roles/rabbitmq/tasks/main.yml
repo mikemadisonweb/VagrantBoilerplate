@@ -1,0 +1,69 @@
+---
+#################################
+##### RabbitMQ Repositories #####
+#################################
+
+- name: Add the official rabbitmq repository's key
+  apt_key:
+    url: "{{ RABBITMQ_APT_KEY }}"
+    state: present
+
+- name: Add RabbitMQ Repository
+  apt_repository:
+    repo: "{{ RABBITMQ_APT_REPOSITORY }}"
+    state: present
+  register: rabbit_repo
+
+#############################
+##### RabbitMQ Packages #####
+#############################
+
+- name: Updating apt cache
+  apt:
+    update_cache: yes
+  when: rabbit_repo.changed
+
+- name: Ensure RabbitMQ is present
+  apt:
+    name: "rabbitmq-server"
+    state: latest
+
+- name: Ensure RabbitMQ is started
+  service:
+    enabled: yes
+    name: rabbitmq-server
+    state: started
+
+##################################
+##### RabbitMQ Configuration #####
+##################################
+
+- name: List RabbitMQ Plugins
+  command: rabbitmq-plugins list
+  changed_when: False
+  register: rabbitmq_plugins
+
+- name: Ensure RabbitMQ Management Plugin
+  command: rabbitmq-plugins enable rabbitmq_management
+  when: rabbitmq_plugins.stdout.find("[E*] rabbitmq_management") == -1
+  notify: Restart RabbitMQ
+
+# Manual
+# http://stackoverflow.com/questions/14699873/how-to-reset-user-for-rabbitmq-management
+# set_permissions new_admin ".*" ".*" ".*"
+- name: Add RabbitMQ Admin User
+  rabbitmq_user: user={{ rabbitmq.user }}
+                 password={{ rabbitmq.password }}
+                 vhost=/
+                 tags=administrator
+                 configure_priv=.*
+                 read_priv=.*
+                 write_priv=.*
+                 state=present
+
+- name: Remove guest user (default)
+  become: yes
+  rabbitmq_user:
+    user: guest
+    vhost: /
+    state: absent

@@ -1,0 +1,25 @@
+---
+system:
+  packages: [vim, git]
+  root: /vagrant
+
+nginx:
+  host: example.dev
+  base_url: /web
+  index: app_dev.php
+
+php:
+  packages: [common, cli, intl, fpm, xml, mbstring, bcmath, xdebug, mysql, pgsql]
+
+postgresql:
+  database: database
+  user: user
+  password: password
+  dump: ''
+
+mysql:
+  database: database
+  users:
+      - name: name
+        password: password
+        privileges: "*.*:ALL"

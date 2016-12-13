@@ -1,0 +1,21 @@
+---
+- name: Ensure apache is absent
+  yum:
+    name: httpd
+    state: absent
+
+- name: Add Nginx official repository for CentOS
+  copy:
+    src: "nginx.repo.centos"
+    dest: "/etc/yum.repos.d/nginx.repo"
+
+- name: Install latest nginx
+  yum:
+    name: nginx
+    state: latest
+
+- name: Ensure service is started and that it always starts on boot
+  service:
+    name: nginx
+    state: started
+    enabled: yes

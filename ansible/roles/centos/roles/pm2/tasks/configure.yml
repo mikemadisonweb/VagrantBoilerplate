@@ -1,0 +1,8 @@
+---
+- name: Installing startup script
+  command: "pm2 startup centos"
+
+- name: Deleting all apps
+  shell: "pm2 delete all"
+  register: command_result
+  failed_when: "'[ERROR]' in command_result.stderr"

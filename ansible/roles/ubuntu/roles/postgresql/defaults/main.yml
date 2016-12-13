@@ -1,0 +1,24 @@
+---
+PSQL_ADMIN_USER: postgres
+
+PSQL_APT_KEY_ID: ACCC4CF8
+PSQL_APT_KEY_URL: "https://www.postgresql.org/media/keys/{{ PSQL_APT_KEY_ID }}.asc"
+PSQL_APT_REPOSITORY: 'deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main {{ PSQL_VERSION }}'
+PSQL_DATA_DIRECTORY: "/var/lib/postgresql/{{ PSQL_VERSION }}/main"
+
+PSQL_VERSION: 9.5
+PSQL_MAX_CONNECTIONS: 100
+PSQL_PORT: 5432
+PSQL_SHARED_BUFFERS: 128MB
+PSQL_SSL: true
+PSQL_TIMEZONE: "Europe/Moscow"
+PSQL_FTS_CONFIG: "pg_catalog.russian"
+
+PSQL_ENV:
+  LC_ALL: "{{ PSQL_LOCALE }}"
+  LC_LCTYPE: "{{ PSQL_LOCALE }}"
+
+PSQL_LOCALE: "{{ POSTGRESQL_LOCALE_PARTS | join('.') }}"
+POSTGRESQL_LOCALE_PARTS:
+  - 'ru_RU' # Locale
+  - 'UTF-8' # Encoding

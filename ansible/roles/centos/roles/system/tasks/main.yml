@@ -1,0 +1,64 @@
+---
+- name: Update Yum
+  yum:
+    name: "*"
+    state: latest
+
+- name: Install common packages
+  yum:
+    pkg: "{{ item }}"
+    state: installed
+  with_items:
+     - nano
+     - curl
+     - gcc
+     - kernel-devel
+     - epel-release
+     - wget
+     - man
+
+- name: Install extra packages
+  yum:
+    pkg: "{{ item }}"
+    state: installed
+  with_items: "{{ system.packages }}"
+  when: system.packages is defined
+
+- name: Configure the timezone
+  template:
+    src: "timezone.j2"
+    dest: "/etc/timezone"
+
+- name: More Configure the timezone
+  file:
+    src: "/usr/share/zoneinfo/{{ SYSTEM_TIMEZONE }}"
+    dest: "/etc/localtime"
+    state: link
+    force: yes
+    backup: yes
+
+- name: Set default system language pack
+  template:
+    src: "locale.conf.j2"
+    dest: "/etc/locale.conf"
+
+- name: Disable SELinux
+  selinux:
+    state: disabled
+
+- name: Copy rsync 3.1.0+
+  copy:
+    src: "../files/rsync-3.1.2-2.fc24.x86_64.rpm"
+    dest: "{{ ansible_env.HOME}}"
+
+- name: Install rsync 3.1.0+ to speed up file sync
+  yum:
+    name: "{{ ansible_env.HOME}}/rsync-3.1.2-2.fc24.x86_64.rpm"
+    state: present
+
+- name: Change default directory on 'vagrant ssh' to system.root
+  become: false
+  lineinfile:
+    dest: "/home/{{ ansible_user }}/.bash_profile"
+    insertbefore: 'BOF'
+    line: "cd {{ system.root }}"

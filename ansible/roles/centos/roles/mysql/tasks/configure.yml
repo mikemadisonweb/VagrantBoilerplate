@@ -1,0 +1,56 @@
+---
+- name: Copy my.cnf file with root password credentials to log in mysql console without prompt
+  become: false
+  template:
+    src: .my.cnf.j2
+    dest: ~/.my.cnf
+    mode: 0600
+  notify: Restart mysql
+
+- name: Update mysql root password for all root accounts
+  mysql_user:
+    name: root
+    host: "{{ item }}"
+    password: "{{ MYSQL_ROOT_PASSWORD }}"
+    login_user: "{{ MYSQL_ROOT_USERNAME }}"
+    login_password: "{{ MYSQL_ROOT_PASSWORD }}"
+    check_implicit_admin: yes
+  with_items:
+      - "{{ ansible_hostname }}"
+      - 127.0.0.1
+      - ::1
+      - localhost
+
+- name: Ensure anonymous users are not in the database
+  mysql_user:
+    name: ''
+    host: "{{ item }}"
+    state: absent
+  with_items:
+      - localhost
+      - "{{ ansible_hostname }}"
+
+- name: Remove the test database
+  mysql_db:
+    name: test
+    state: absent
+
+- name: Create Database
+  mysql_db:
+    login_user: "{{ MYSQL_ROOT_USERNAME }}"
+    login_password: "{{ MYSQL_ROOT_PASSWORD }}"
+    name: "{{ item }}"
+    collation: utf8_unicode_ci
+    encoding: utf8
+  with_items: "{{ mysql.databases }}"
+  when: mysql.databases is defined
+
+- name: Adds required MySQL users
+  mysql_user:
+    login_user: "{{ MYSQL_ROOT_USERNAME }}"
+    login_password: "{{ MYSQL_ROOT_PASSWORD }}"
+    user: "{{ item.name }}"
+    password: "{{ item.password }}"
+    priv: "{{ item.privileges }}"
+  with_items: "{{ mysql.users }}"
+  when: mysql.users is defined

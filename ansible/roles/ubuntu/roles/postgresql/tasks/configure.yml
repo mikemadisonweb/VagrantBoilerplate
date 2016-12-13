@@ -1,0 +1,38 @@
+---
+- name: Make sure the requested locale exists on the server
+  locale_gen:
+    name: "{{ PSQL_LOCALE }}"
+    state: present
+
+- name: Copy configuration templates
+  template:
+    src: postgresql.conf.j2
+    dest: "/etc/postgresql/{{ PSQL_VERSION }}/main/postgresql.conf"
+  notify: reload postgres
+
+- name: Ensure postgresql is running
+  service:
+    enabled: yes
+    name: postgresql
+    state: started
+
+- name: Create databases
+  become: yes
+  become_user: "{{ PSQL_ADMIN_USER }}"
+  postgresql_db:
+    name: "{{ postgresql.database }}"
+
+- name: Import dump
+  become: yes
+  become_user: "{{ PSQL_ADMIN_USER }}"
+  shell: "psql {{ postgresql.database }} < /vagrant/{{ postgresql.dump }}"
+  when: postgresql.dump
+
+- name: Create user
+  become: yes
+  become_user: "{{ PSQL_ADMIN_USER }}"
+  postgresql_user:
+    name: "{{ postgresql.user }}"
+    password: "{{ postgresql.password }}"
+    db: "{{ postgresql.database }}"
+    priv: "ALL"

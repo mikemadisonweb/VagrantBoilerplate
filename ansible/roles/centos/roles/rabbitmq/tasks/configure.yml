@@ -1,0 +1,54 @@
+---
+- name: Ensure RabbitMQ is started and that it always starts on boot
+  service:
+    name: rabbitmq-server
+    enabled: yes
+    state: started
+
+- name: List RabbitMQ Plugins
+  command: rabbitmq-plugins list
+  changed_when: False
+  register: rabbitmq_plugins
+
+- name: Ensure RabbitMQ Management Plugin
+  command: rabbitmq-plugins enable rabbitmq_management
+  when: rabbitmq_plugins.stdout.find("[E*] rabbitmq_management") == -1
+  notify: Restart RabbitMQ
+
+- name: Ensure application vhost exists
+  rabbitmq_vhost:
+    name: "{{ rabbitmq.vhost }}"
+    state: present
+  when: rabbitmq.vhost is defined
+  notify: Restart RabbitMQ
+
+# Manual
+# http://stackoverflow.com/questions/14699873/how-to-reset-user-for-rabbitmq-management
+# set_permissions new_admin ".*" ".*" ".*"
+- name: Add RabbitMQ Admin User
+  rabbitmq_user:
+    user: "{{ rabbitmq.user }}"
+    password: "{{ rabbitmq.password }}"
+    vhost: "{{ rabbitmq.vhost }}"
+    tags: "administrator"
+    configure_priv: ".*"
+    read_priv: ".*"
+    write_priv: ".*"
+    state: present
+
+- name: Remove guest user (default)
+  rabbitmq_user:
+    user: guest
+    vhost: "{{ rabbitmq.vhost }}"
+    state: absent
+
+- name: Create exchanges
+  rabbitmq_exchange:
+    name: "{{ item.name }}"
+    type: "{{ item.type | default('direct') }}"
+    durable: "{{ item.durable | default('yes') }}"
+    vhost: "{{ rabbitmq.vhost }}"
+    login_user: "{{ rabbitmq.user }}"
+    login_password: "{{ rabbitmq.password }}"
+  with_items: "{{ rabbitmq.exchanges }}"
+  when: rabbitmq.exchanges is defined

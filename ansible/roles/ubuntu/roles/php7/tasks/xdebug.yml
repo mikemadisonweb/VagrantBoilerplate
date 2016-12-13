@@ -1,0 +1,16 @@
+---
+- name: Install xdebug php packages
+  apt:
+    pkg: php7.0-xdebug
+    state: latest
+    force: yes
+    update_cache: yes
+
+- name: Copy xdebug.ini
+  template:
+    src: xdebug.ini.j2
+    dest: /etc/php/7.0/mods-available/xdebug.ini
+
+- name: Activate xdebug
+  become: true
+  shell: phpenmod xdebug

@@ -1,0 +1,6 @@
+---
+- name: Set group nginx to ansible_user
+  user:
+    name: "{{ ansible_user }}"
+    group: "{{ PHP_GROUP }}"
+    append: yes

@@ -1,0 +1,23 @@
+---
+- name: Install configured globally-required packages
+  become_user: "{{ COMPOSER_HOME_OWNER }}"
+  shell: >
+    COMPOSER_HOME={{ COMPOSER_HOME_PATH }}
+    {{ COMPOSER_PATH }} global require {{ item.name }}:{{ item.release | default('@stable') }} --no-progress
+    creates={{ COMPOSER_HOME_PATH }}/vendor/{{ item.name }}
+  register: composer_global_require_result
+  with_items: "{{ composer.global_packages }}"
+
+- name: Add composer_home_path bin directory to global $PATH
+  template:
+    src: composer.sh.j2
+    dest: /etc/profile.d/composer.sh
+    mode: 0644
+  when: COMPOSER_ADD_TO_PATH
+
+# Downloads and installs all the libs and dependencies outlined in the /path/to/project/composer.lock
+- name: Composer install
+  composer:
+    command: "install"
+    no_dev: "no"
+    working_dir: "{{ system.root }}"

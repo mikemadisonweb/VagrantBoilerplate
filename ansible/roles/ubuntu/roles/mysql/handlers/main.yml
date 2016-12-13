@@ -1,0 +1,4 @@
+---
+# handlers file for mysql
+- name: restart mysql
+  action: service name=mysql state=restarted

@@ -1,0 +1,25 @@
+---
+- name: Install nginx
+  apt:
+    name: nginx
+    state: present
+    update_cache: true
+- name: Copy across virtual host config
+  template:
+    src: templates/nginx.conf.j2
+    dest: /etc/nginx/sites-available/{{ nginx.host }}
+  notify:
+    - reload nginx
+- name: Enable site
+  file:
+    src: /etc/nginx/sites-available/{{ nginx.host }}
+    dest: /etc/nginx/sites-enabled/{{ nginx.host }}
+    state: link
+  notify:
+  - reload nginx
+- name: Remove default conf link
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify:
+  - reload nginx

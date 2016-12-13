@@ -1,0 +1,51 @@
+---
+system:
+  packages: [vim, git, unzip, wget, mc]
+  root: /vagrant
+
+nginx:
+  base_path: /etc/nginx
+  config_path: /etc/nginx/conf.d
+  sites: [frontend, backend]
+  frontend_host: frontend.spir.dev
+  backend_host: backend.spir.dev
+  frontend_url: /frontend/web
+  backend_url: /backend/web
+  index: index.php
+  pass: 127.0.0.1:9000
+  yii_andvanced_backend_link: true
+
+php:
+  env: "dev"
+  packages: [common, cli, intl, fpm, xml, mbstring, bcmath, mysql, gd, curl, process]
+  install_xdebug: true
+  modules_path: "/usr/lib64/php/modules"
+  config:
+    memory_limit: "128M"
+    max_execution_time: "60"
+    upload_max_filesize: "32M"
+    post_max_size: "32M"
+
+mysql:
+  databases: [db1, db2]
+  users:
+    - name: name
+      password: password
+      privileges: "*.*:ALL"
+
+composer:
+  do_install: true
+  keep_updated: true
+  global_packages:
+    - { name: fxp/composer-asset-plugin }
+
+rabbitmq:
+  user: user
+  password: password
+  vhost: '/'
+  exchanges:
+    - { name: exchanges.name }
+
+redis:
+  daemon: redis
+  config_path: /etc/redis.conf

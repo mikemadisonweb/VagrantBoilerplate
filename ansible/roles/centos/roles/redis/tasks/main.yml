@@ -1,0 +1,24 @@
+- name: Ensure Epel is installed
+  yum:
+    name: epel-release
+    state: present
+
+- name: Install Redis
+  yum:
+    name: redis
+    state: installed
+    enablerepo: remi
+  
+- name: Change overcommit policy to avoid fork() error (http://redis.io/topics/faq)
+  sysctl:
+    name: "vm.overcommit_memory"
+    value: 1
+    state: present
+    reload: yes
+  notify: restart redis
+
+- name: Ensure Redis is running and enabled on boot
+  service:
+    name: "{{ redis.daemon }}"
+    state: started
+    enabled: yes

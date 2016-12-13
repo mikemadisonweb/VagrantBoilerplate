@@ -1,0 +1,3 @@
+---
+RABBITMQ_APT_KEY: "https://www.rabbitmq.com/rabbitmq-release-signing-key.asc"
+RABBITMQ_APT_REPOSITORY: "deb http://www.rabbitmq.com/debian/ testing main"

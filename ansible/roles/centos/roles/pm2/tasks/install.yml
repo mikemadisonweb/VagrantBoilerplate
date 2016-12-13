@@ -1,0 +1,11 @@
+---
+- name: Install npm and node via EPEL yum repo
+  yum:
+    name: npm
+    enablerepo: epel
+    state: present
+
+- name: Install packages
+  npm:
+    name: pm2
+    global: yes
