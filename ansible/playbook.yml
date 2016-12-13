@@ -1,0 +1,18 @@
+---
+- hosts: local
+  become: true
+  vars_files:
+    - vars/vagrant.yml
+  roles:
+    - rabbitmq
+    - system
+
+    - nginx
+    - mysql
+    - php56
+    - composer
+
+    - redis
+    - pm2
+    - spir-frontend
+    - yii2-advanced

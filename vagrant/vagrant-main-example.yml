@@ -1,0 +1,7 @@
+---
+os: "centos/7"
+username: "vagrant"
+machine_name: "example"
+ip: 192.168.x.x
+provision_path: "./ansible/playbook.yml"
+domains: ['backend.example.dev', 'frontend.example.dev']
