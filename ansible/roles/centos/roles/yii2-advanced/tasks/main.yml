@@ -5,16 +5,6 @@
     state: directory
     owner: vagrant
     group: nginx
-  with_items:
-    - backend/runtime
-    - backend/web/assets
-    - frontend/runtime
-    - frontend/web/assets
-    - console/runtime
-
-- name: Enable writable directories
-  file:
-    dest: "{{ system.root }}/{{ item }}"
     mode: 0777
     recurse: yes
   with_items:

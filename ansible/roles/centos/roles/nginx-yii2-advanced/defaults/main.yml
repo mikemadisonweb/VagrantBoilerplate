@@ -1,3 +1,5 @@
 NGINX_USER: nginx
+NGINX_BASE_PATH: /etc/nginx
+NGINX_CONFIG_PATH: /etc/nginx/conf.d
 NGINX_ULIMIT:             51200     # worker_rlimit_nofile in nginx.conf
 NGINX_WORKER_CONNECTIONS: 1024      # worker_connections in nginx.conf

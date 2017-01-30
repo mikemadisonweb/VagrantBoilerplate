@@ -1,0 +1,19 @@
+---
+- name: Install dependencies
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - postgresql-libs
+    - unixODBC
+
+- name: Install sphinx from rpm (ver 2.2.11)
+  yum:
+    name: "{{ SPHINX_RPM_URL }}"
+    state: present
+
+- name: Be sure sphinx service is running and enabled
+  service:
+    name: searchd
+    state: running
+    enabled: yes

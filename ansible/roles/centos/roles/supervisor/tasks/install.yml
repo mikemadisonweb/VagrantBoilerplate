@@ -1,0 +1,8 @@
+---
+- name: Install python setup tools
+  yum:
+    name: python-setuptools
+    state: installed
+
+- name: Install supervisor with easy_install
+  shell: easy_install supervisor

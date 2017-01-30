@@ -1,0 +1,14 @@
+---
+- name: Install xdebug
+  yum:
+    name: php-xdebug
+    enablerepo: "remi,remi-php71"
+    state: present
+  when: php.install_xdebug == true
+
+- name: Copy xdebug configuration
+  template:
+    src: "15-xdebug.ini.j2"
+    dest: "/etc/php.d/15-xdebug.ini"
+  when: php.install_xdebug == true
+  notify: restart php-fpm

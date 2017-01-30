@@ -1,0 +1,8 @@
+---
+PHP_EPEL: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm"
+PHP_REMI: "http://rpms.famillecollet.com/enterprise/remi-release-7.rpm"
+TIMEZONE: Europe/Moscow
+PHP_POOL_PATH: /etc/php-fpm.d
+PHP_CONFIG_PATH: /etc
+PHP_USER: nginx
+PHP_GROUP: nginx

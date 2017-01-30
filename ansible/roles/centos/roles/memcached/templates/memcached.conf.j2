@@ -1,0 +1,9 @@
+PORT="{{ memcached.port }}"
+USER="{{ memcached.user }}"
+MAXCONN="{{ memcached.maxconn }}"
+CACHESIZE="{{ memcached.cachesize }}"
+{% if memcached.log.enable %}
+OPTIONS="-l {{ memcached.listen_ip }} {{ memcached.log.verbosity }} >> {{ memcached.log.file }} 2>&1"
+{% else %}
+OPTIONS="-l {{ memcached.listen_ip }}"
+{% endif -%}

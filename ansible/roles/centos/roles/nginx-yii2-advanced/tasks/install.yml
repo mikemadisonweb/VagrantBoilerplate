@@ -4,11 +4,6 @@
     name: httpd
     state: absent
 
-- name: Add Nginx official repository for CentOS
-  copy:
-    src: "nginx.repo.centos"
-    dest: "/etc/yum.repos.d/nginx.repo"
-
 - name: Install latest nginx
   yum:
     name: nginx

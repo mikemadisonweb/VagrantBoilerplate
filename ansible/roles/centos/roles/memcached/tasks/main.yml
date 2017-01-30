@@ -1,0 +1,21 @@
+---
+- name: Install Memcached
+  yum:
+    name: memcached
+    state: installed
+
+# Configure Memcached
+- name: Copy Memcached configuration
+  template:
+    src: memcached.conf.j2
+    dest: "{{ MEMCACHED_CONFIG_FILE }}"
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart memcached
+
+- name: Ensure Memcached is started and set to run on startup
+  service:
+    name: memcached
+    state: started
+    enabled: yes

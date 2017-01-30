@@ -1,0 +1,33 @@
+---
+- name: Install epel repo
+  yum:
+    name: "{{ PHP_EPEL }}"
+    state: present
+
+- name: Install remi repo
+  yum:
+    name: "{{ PHP_REMI }}"
+    state: present
+
+- name: Upgrade all packages
+  yum:
+    name: "*"
+    state: latest
+
+- name: Install PHP
+  yum:
+    name: "{{ item }}"
+    enablerepo: "remi,remi-php71"
+    state: present
+  with_items:
+    - php
+    - php-common
+  when: php.packages is defined
+
+- name: Install PHP packages
+  yum:
+    name: "php-{{ item }}"
+    enablerepo: "remi,remi-php71"
+    state: present
+  with_items: "{{ php.packages }}"
+  when: php.packages is defined

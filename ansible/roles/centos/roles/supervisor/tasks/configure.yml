@@ -1,0 +1,68 @@
+---
+- name: Configure supervisord
+  shell: "/usr/bin/echo_supervisord_conf > {{supervisor.config.file}}"
+
+- name: Backup default configuration
+  shell: "cp {{supervisor.config.file}} {{supervisor.config.default}} creates={{supervisor.config.default}}"
+
+- name: Prepare necessary directories
+  file:
+    path: "{{item}}"
+    state: directory
+    recurse: yes
+  with_items:
+    - "{{supervisor.log.dir}}"
+    - "{{supervisor.config.dir}}/{{supervisor.http.file}}"
+
+- name: Configure runtime and log
+  ini_file:
+    dest: "{{supervisor.config.file}}"
+    section: "{{item.section}}"
+    option: "{{item.option}}"
+    value: "{{item.value}}"
+  with_items:
+    - { section: unix_http_server, option: file, value: "{{supervisor.runtime.dir}}/{{supervisor.runtime.socket}}" }
+    - { section: supervisorctl, option: serverurl, value: "unix://{{supervisor.runtime.dir}}/{{supervisor.runtime.socket}}" }
+    - { section: supervisord, option: nodaemon, value: "{{supervisor.runtime.nodaemon}}" }
+    - { section: supervisord, option: logfile, value: "{{supervisor.log.dir}}/{{supervisor.log.file}}" }
+    - { section: supervisord, option: loglevel, value: "{{supervisor.log.level}}" }
+
+- name: Tell supervisor to include relative configurations directory
+  ini_file:
+    dest: "{{supervisor.config.file}}"
+    section: include
+    option: files
+    value: "{{supervisor.config.dir}}/*.ini"
+    state: present
+
+- name: Configure web ui status checking server
+  ini_file:
+    dest: "{{supervisor.config.dir}}/{{supervisor.http.file}}"
+    section: inet_http_server
+    option: "{{item.key}}"
+    value: "{{item.value}}"
+    state: present
+  with_dict: "{{ supervisor.http }}"
+
+- name: Add programs
+  ini_file:
+    dest: "{{supervisor.config.dir}}/{{item.0.file}}"
+    section: "program:{{item.0.name}}"
+    option: "{{item.1.keys()[0]}}"
+    value: "{{item.1.values()[0]}}"
+    state: present
+  with_subelements:
+      - "{{ supervisor.programs }}"
+      - values
+  when: supervisor.programs is defined
+
+- name: Setup as service
+  template:
+    src: "supervisord.service.j2"
+    dest: "/usr/lib/systemd/system/supervisord.service"
+
+- name: Ensure service is started and that it always starts on boot
+  service:
+    name: supervisord
+    state: started
+    enabled: yes

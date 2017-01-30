@@ -52,5 +52,6 @@
     user: "{{ item.name }}"
     password: "{{ item.password }}"
     priv: "{{ item.privileges }}"
+    host: "{{ item.host | default('localhost') }}"
   with_items: "{{ mysql.users }}"
   when: mysql.users is defined
