@@ -64,12 +64,6 @@ Vagrant.configure(2) do |config|
                 "hooks",
                 "ansible",
                 "Vagrantfile",
-                "dumps",
-                "backend/runtime",
-                "frontend/runtime",
-                "console/runtime",
-                "backend/web/assets",
-                "frontend/web/assets"
                 ],
             rsync__args: [
                 "--verbose",
@@ -103,9 +97,7 @@ Vagrant.configure(2) do |config|
     if Vagrant.has_plugin?("vagrant-triggers")
         config.trigger.after [:up, :reload] do
             run_remote "runuser -l #{options['username']} -c 'pm2 kill -s'"
-            run_remote "runuser -l #{options['username']} -c 'pm2 start --name=websockets /vagrant/nodejs/socketio.js'"
-            run_remote "runuser -l #{options['username']} -c 'pm2 start --interpreter=php --name=consumer /vagrant/yii -- rabbitmq-consumer/multiple search -m=100'"
-            run_remote "runuser -l #{options['username']} -c 'pm2 start --interpreter=php --name=material-import /vagrant/yii -- material-import/update -i=10'"
+            run_remote "runuser -l #{options['username']} -c 'pm2 start --name=yourApp /vagrant/nodejs/app.js'"
             run "vagrant hostmanager"
             run "vagrant instant-rsync-auto"
         end
